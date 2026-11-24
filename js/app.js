@@ -25,6 +25,7 @@ const S = {
   rady: new Map(),       // id → Map(rok → [[d, v], …])
   vybrany: null,
   obdobi: ls.get("trhy.obdobi", "1R"),
+  sparkObd: ls.get("trhy.spark", "3M"),
   vlastni: null,         // { od, do }
   graf: null,
 };
@@ -169,21 +170,54 @@ function rozsahObdobi(obd, posledni, prvni) {
 
 // ---------------------------------------------------------------- seznam
 
+const SPARK = { "1T": "1 týden", "1M": "1 měsíc", "3M": "3 měsíce" };
+
+function sparkData(s) {
+  const h = s?.spark || [], dny = s?.sparkDny;
+  if (S.sparkObd === "3M" || h.length < 2) return h;
+  if (dny?.length === h.length) {
+    const posl = dny[dny.length - 1];
+    const od = S.sparkObd === "1T" ? posunDen(posl, -7) : posunMesic(posl, -1);
+    let i = dny.findIndex(d => d > od);
+    if (i < 0) i = dny.length - 1;
+    return h.slice(Math.max(0, i - 1));
+  }
+  return h.slice(-(S.sparkObd === "1T" ? 6 : 22));
+}
+
 function spark(t, s) {
-  const h = s?.spark;
+  const h = sparkData(s);
   if (!h || h.length < 2) return `<svg class="spark"></svg>`;
   const w = 72, v = 26;
   const min = Math.min(...h), max = Math.max(...h);
   const rng = max - min || 1;
   const pts = h.map((x, i) => `${(i / (h.length - 1) * w).toFixed(1)},${(v - 2 - (x - min) / rng * (v - 4)).toFixed(1)}`).join(" ");
   const tr = smer(h[h.length - 1] - h[0]);
-  return `<svg class="spark ${tr}" viewBox="0 0 ${w} ${v}" preserveAspectRatio="none"><title>Vývoj za 3 měsíce</title><polyline points="${pts}"/></svg>`;
+  return `<svg class="spark ${tr}" viewBox="0 0 ${w} ${v}" preserveAspectRatio="none"><title>Vývoj za ${SPARK[S.sparkObd]}: ${jeSazba(t) ? zmenaAbs(t, h[h.length - 1] - h[0]) : procenta(h[0] ? h[h.length - 1] / h[0] - 1 : null)}</title><polyline points="${pts}"/></svg>`;
 }
+
+// odkaz na graf: TradingView, jinak zdroj dat
+function odkaz(t, hloubka = 0) {
+  if (!t) return null;
+  if (t.tv) return { url: `https://www.tradingview.com/symbols/${t.tv.replace(":", "-")}/`, nazev: "TradingView" };
+  const z = t.zdroj || {};
+  if (z.typ === "yahoo") {
+    const tk = z.ticker || (S.summary.tituly?.[t.id]?.stav?.pouzity || "").split(" ")[1];
+    if (tk) return { url: `https://finance.yahoo.com/quote/${encodeURIComponent(tk)}/`, nazev: "Yahoo Finance" };
+  }
+  if (z.typ === "stooq" && z.ticker) return { url: `https://stooq.com/q/?s=${encodeURIComponent(z.ticker)}`, nazev: "Stooq" };
+  if (z.typ === "patria" && z.cesta) return { url: `https://www.patria.cz${z.cesta}`, nazev: "Patria" };
+  if (z.typ === "cnb") return { url: "https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/", nazev: "ČNB" };
+  if (z.typ === "odvozeny" && hloubka < 3) return odkaz(S.conf.tituly.find(x => x.id === z.a), hloubka + 1);
+  return null;
+}
+
+const ikonaVen = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function vykresliSeznam() {
   const el = $("#list");
   const skupiny = S.conf.skupiny || [];
-  let html = "";
+  let html = `<div class="list-tools"><span class="muted small">Minigraf</span>${Object.keys(SPARK).map(o => `<button type="button" data-spark="${o}" class="${o === S.sparkObd ? "on" : ""}" title="Minigraf za ${SPARK[o]}">${o}</button>`).join("")}</div>`;
   for (const g of skupiny) {
     const tituly = S.conf.tituly.filter(t => t.skupina === g.id);
     if (!tituly.length) continue;
@@ -193,8 +227,10 @@ function vykresliSeznam() {
       const z = s.zmeny?.["1D"];
       const chyba = s.stav?.chyba;
       const ath = s.odAth && s.posledni ? (jeSazba(t) ? `ATH ${zmenaAbs(t, s.odAth.abs)}` : `ATH ${procenta(s.odAth.rel, 1)}`) : "";
+      const o = odkaz(t);
       html += `
-        <a class="row${t.id === S.vybrany ? " active" : ""}" href="#t=${encodeURIComponent(t.id)}" data-id="${esc(t.id)}">
+        <div class="row-wrap${t.id === S.vybrany ? " active" : ""}">
+        <a class="row" href="#t=${encodeURIComponent(t.id)}" data-id="${esc(t.id)}">
           <div class="r-name">
             <span class="r-title">${esc(t.nazev)}${chyba ? ` <span class="badge err" title="${esc(chyba)}">!</span>` : ""}</span>
             <small>${s.posledni ? datumKratce(s.posledni.d) : "bez dat"}${ath ? ` · ${ath}` : ""}</small>
@@ -204,7 +240,9 @@ function vykresliSeznam() {
             <span>${s.posledni ? hodnota(t, s.posledni.v) : "–"}</span>
             <small class="${smer(z?.abs)}">${zmenaHlavni(t, z)}</small>
           </div>
-        </a>`;
+        </a>
+        ${o ? `<a class="r-ext" href="${esc(o.url)}" target="_blank" rel="noopener" title="Graf – ${esc(o.nazev)}" aria-label="Graf ${esc(t.nazev)} – ${esc(o.nazev)}">${ikonaVen}</a>` : `<span class="r-ext"></span>`}
+        </div>`;
     }
     html += `</div>`;
   }
@@ -222,7 +260,7 @@ function kostraDetailu() {
   el.innerHTML = `
     <div class="d-head">
       <button class="back" type="button" aria-label="Zpět na seznam">‹</button>
-      <div class="d-title"><h1></h1><div class="muted d-sub"></div></div>
+      <div class="d-title"><h1></h1><div class="muted d-sub"></div><a class="d-ext small" target="_blank" rel="noopener"></a></div>
       <div class="d-price"><div class="big"></div><div class="chg"></div><div class="muted small d-date"></div></div>
     </div>
     <div class="periods">
@@ -282,6 +320,10 @@ function vykresliDetail() {
   const z = s.zmeny?.["1D"];
   el.querySelector("h1").textContent = t.nazev;
   el.querySelector(".d-sub").textContent = [t.popis, t.isin, t.jednotka].filter(Boolean).join(" · ");
+  const o = odkaz(t);
+  const ext = el.querySelector(".d-ext");
+  ext.hidden = !o;
+  if (o) { ext.href = o.url; ext.innerHTML = `Graf na ${esc(o.nazev)} ${ikonaVen}`; }
   el.querySelector(".big").textContent = s.posledni ? hodnota(t, s.posledni.v) : "–";
   const chg = el.querySelector(".chg");
   chg.className = `chg ${smer(z?.abs)}`;
@@ -384,7 +426,7 @@ async function vykresliGraf() {
 
 let liveKlic = "";
 function vykresliLive() {
-  const symboly = (S.conf?.tituly || []).filter(t => t.tv).map(t => ({ proName: t.tv, title: t.tvNazev || t.nazev }));
+  const symboly = (S.conf?.tituly || []).filter(t => t.zive).map(t => ({ proName: t.zive, title: t.zivePopis || t.nazev }));
   const box = $("#live");
   const klic = JSON.stringify(symboly) + tema();
   if (klic === liveKlic) return;
@@ -496,7 +538,7 @@ function vykresli() {
   document.body.classList.toggle("show-detail", !!r.id);
   vykresliSeznam();
   vykresliDetail();
-  if (r.id) $("#list .row.active")?.scrollIntoView({ block: "nearest" });
+  if (r.id) $("#list .row-wrap.active")?.scrollIntoView({ block: "nearest" });
 }
 
 // ---------------------------------------------------------------- start
@@ -524,6 +566,13 @@ initNastaveni();
 document.addEventListener("click", e => {
   const a = e.target.closest("[data-akce='nastaveni']");
   if (a) { e.preventDefault(); otevriNastaveni(); }
+});
+$("#list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-spark]");
+  if (!b) return;
+  S.sparkObd = b.dataset.spark;
+  ls.set("trhy.spark", S.sparkObd);
+  vykresliSeznam();
 });
 $("#btnRefresh").addEventListener("click", () => S.api ? aktualizujTed() : otevriNastaveni());
 window.addEventListener("hashchange", () => {

@@ -153,8 +153,9 @@ export class Sprava {
         ${pole("isin", "ISIN")}
         ${pole("jednotka", "Jednotka", "USD, CZK, % …")}
         ${pole("des", "Desetinná místa", "2")}
-        ${pole("tv", "Živý kurz – symbol TradingView", "např. FX_IDC:EURCZK")}
-        ${pole("tvNazev", "Živý kurz – popisek", "jinak název titulu")}
+        ${pole("tv", "Odkaz na graf – symbol TradingView", "např. LSE:VUAA")}
+        ${pole("zive", "Živý kurz – symbol TradingView", "např. FX_IDC:EURCZK")}
+        ${pole("zivePopis", "Živý kurz – popisek", "jinak název titulu")}
         ${this.poleZdroje(t.zdroj, "zdroj")}
         <label>Záložní zdroj – Stooq ticker<input data-f="zaloha.ticker" value="${esc(t.zaloha?.ticker || "")}" placeholder="volitelné, např. vuaa.uk"></label>
       </div>`;
@@ -169,7 +170,8 @@ export class Sprava {
         <label>ISIN<input data-n="isin" value="${esc(n.isin || "")}" placeholder="volitelné"></label>
         <label>Jednotka<input data-n="jednotka" value="${esc(n.jednotka || "")}" placeholder="USD"></label>
         ${this.poleZdroje(n.zdroj, "zdroj").replaceAll('data-f="', 'data-n="')}
-        <label>Živý kurz – symbol TradingView<input data-n="tv" value="${esc(n.tv || "")}" placeholder="volitelné"></label>
+        <label>Odkaz na graf – symbol TradingView<input data-n="tv" value="${esc(n.tv || "")}" placeholder="volitelné, např. NASDAQ:AAPL"></label>
+        <label>Živý kurz – symbol TradingView<input data-n="zive" value="${esc(n.zive || "")}" placeholder="volitelné, jen pro lištu Živě"></label>
         <div class="m-line"><button type="button" class="btn primary" data-a="t-pridat">Přidat titul</button>
         ${n.isin && !n.zdroj?.ticker ? `<a class="small" target="_blank" rel="noopener" href="https://finance.yahoo.com/lookup?s=${encodeURIComponent(n.isin)}">najít ticker na Yahoo</a>` : ""}</div>
       </div>`;
@@ -273,6 +275,7 @@ export class Sprava {
       t.zdroj = klon(z);
       if (t.zdroj.typ === "yahoo" && !t.zdroj.ticker) t.zdroj.ticker = "";
       if (n.tv) t.tv = n.tv.trim();
+      if (n.zive) t.zive = n.zive.trim();
       // vložit na konec své skupiny
       let pos = -1;
       d.tituly.forEach((x, i) => { if (x.skupina === t.skupina) pos = i; });

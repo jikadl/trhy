@@ -7,8 +7,9 @@ s tokenem uloženým jen v prohlížeči. V tomto repozitáři nejsou žádná d
 
 ## Funkce
 
-- **Přehled** po skupinách: poslední hodnota, denní změna, vzdálenost od ATH, minigraf vývoje za poslední 3 měsíce.
-- **Živé kurzy** (lišta nahoře): widget TradingView pro tituly, které mají v seznamu symbol `tv`.
+- **Přehled** po skupinách: poslední hodnota, denní změna, vzdálenost od ATH, minigraf (přepínač 1T / 1M / 3M)
+  a odkaz na graf (TradingView podle pole `tv`, jinak zdroj dat: Patria, Yahoo, ČNB).
+- **Živé kurzy** (lišta nahoře): widget TradingView pro tituly, které mají v seznamu symbol `zive`.
   Kliknutí otevře graf na TradingView.
 - **Detail**: graf s obdobím 1T / 1M / 3M / 6M / YTD / 1R / 3R / 5R / Max nebo vlastní rozsah dat,
   posuvník a kolečko myši pro přiblížení.

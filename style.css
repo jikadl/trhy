@@ -141,7 +141,7 @@ button, input, select { font: inherit; color: inherit; }
 /* ---------- seznam */
 .group h3 {
   margin: 0;
-  padding: 14px 16px 6px;
+  padding: 12px 16px 6px;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -151,6 +151,43 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--surface);
   z-index: 1;
 }
+.list-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px 4px;
+}
+.list-tools span { margin-right: auto; }
+.list-tools button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 2px 9px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.list-tools button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.row-wrap {
+  display: flex;
+  align-items: center;
+  border-left: 3px solid transparent;
+}
+.row-wrap:hover { background: var(--surface-2); }
+.row-wrap.active { background: var(--surface-2); border-left-color: var(--accent); }
+.row-wrap .row { flex: 1; min-width: 0; padding-right: 4px; }
+.r-ext {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  border-radius: 6px;
+  color: var(--muted);
+}
+a.r-ext:hover { background: var(--border); color: var(--accent); }
+.d-ext { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; text-decoration: none; }
+.d-ext:hover { text-decoration: underline; }
 .row {
   display: grid;
   grid-template-columns: 1fr 72px 110px;
@@ -159,10 +196,7 @@ button, input, select { font: inherit; color: inherit; }
   padding: 8px 16px;
   color: var(--text);
   text-decoration: none;
-  border-left: 3px solid transparent;
 }
-.row:hover { background: var(--surface-2); }
-.row.active { background: var(--surface-2); border-left-color: var(--accent); }
 .r-name { min-width: 0; display: flex; flex-direction: column; }
 .r-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .r-name small, .r-val small { font-size: 12px; color: var(--muted); }
@@ -378,8 +412,9 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
   .custom input { flex: 1; min-width: 0; }
   .chart { height: clamp(260px, 46vh, 420px); }
   .stats { grid-template-columns: 1fr; }
-  .row { grid-template-columns: 1fr 60px 104px; padding: 8px 16px; }
-  .spark { width: 60px; }
+  .row { grid-template-columns: 1fr 56px 100px; padding: 8px 4px 8px 14px; gap: 8px; }
+  .r-ext { margin-right: 4px; }
+  .spark { width: 56px; }
   .live { min-height: 64px; padding: 0 8px; }
   .data-info { display: none; }
 }
