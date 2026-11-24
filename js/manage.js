@@ -154,6 +154,7 @@ export class Sprava {
         ${pole("jednotka", "Jednotka", "USD, CZK, % …")}
         ${pole("des", "Desetinná místa", "2")}
         ${pole("tv", "Živý kurz – symbol TradingView", "např. FX_IDC:EURCZK")}
+        ${pole("tvNazev", "Živý kurz – popisek", "jinak název titulu")}
         ${this.poleZdroje(t.zdroj, "zdroj")}
         <label>Záložní zdroj – Stooq ticker<input data-f="zaloha.ticker" value="${esc(t.zaloha?.ticker || "")}" placeholder="volitelné, např. vuaa.uk"></label>
       </div>`;

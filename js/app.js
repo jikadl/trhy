@@ -177,7 +177,7 @@ function spark(t, s) {
   const rng = max - min || 1;
   const pts = h.map((x, i) => `${(i / (h.length - 1) * w).toFixed(1)},${(v - 2 - (x - min) / rng * (v - 4)).toFixed(1)}`).join(" ");
   const tr = smer(h[h.length - 1] - h[0]);
-  return `<svg class="spark ${tr}" viewBox="0 0 ${w} ${v}" preserveAspectRatio="none"><polyline points="${pts}"/></svg>`;
+  return `<svg class="spark ${tr}" viewBox="0 0 ${w} ${v}" preserveAspectRatio="none"><title>Vývoj za 3 měsíce</title><polyline points="${pts}"/></svg>`;
 }
 
 function vykresliSeznam() {
@@ -360,7 +360,13 @@ async function vykresliGraf() {
   if (i0 < 0) i0 = body.length;
   if (i0 > 0 && body[i0 - 1][0] <= od) i0 -= 1;
   const vyber = body.slice(i0).filter(b => b[0] <= doD);
-  S.graf.zobraz(t, vyber);
+  try {
+    if (typeof echarts === "undefined") throw new Error("knihovna grafů (ECharts) se nenačetla – zkuste obnovit stránku");
+    S.graf.zobraz(t, vyber);
+  } catch (e) {
+    el.querySelector(".d-period").innerHTML = `<span class="err">Graf nelze vykreslit: ${esc(e.message || e)}</span>`;
+    return;
+  }
 
   if (vyber.length >= 2) {
     const a = vyber[0], b = vyber[vyber.length - 1];
@@ -378,7 +384,7 @@ async function vykresliGraf() {
 
 let liveKlic = "";
 function vykresliLive() {
-  const symboly = (S.conf?.tituly || []).filter(t => t.tv).map(t => ({ proName: t.tv, title: t.nazev }));
+  const symboly = (S.conf?.tituly || []).filter(t => t.tv).map(t => ({ proName: t.tv, title: t.tvNazev || t.nazev }));
   const box = $("#live");
   const klic = JSON.stringify(symboly) + tema();
   if (klic === liveKlic) return;
