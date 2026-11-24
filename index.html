@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Trhy</title>
+  <meta name="theme-color" content="#0f1720">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230f1720'/%3E%3Cpath d='M5 22l7-8 5 5 10-11' stroke='%2334d399' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.1/echarts.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#">Trhy</a>
+    <span class="data-info" id="dataInfo"></span>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="btnRefresh" title="Aktualizovat data teď" aria-label="Aktualizovat data">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <a class="icon-btn" href="#sprava" title="Správa titulů" aria-label="Správa titulů">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </a>
+    <button class="icon-btn" id="btnSettings" title="Nastavení" aria-label="Nastavení">
+      <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+    </button>
+  </header>
+
+  <div class="live" id="live" hidden>
+    <span class="live-label">Živě</span>
+    <div class="live-widget" id="liveWidget"></div>
+  </div>
+
+  <div class="status" id="status" hidden></div>
+
+  <main class="layout" id="viewMain">
+    <aside class="list" id="list"></aside>
+    <section class="detail" id="detail">
+      <div class="empty">Vyberte titul ze seznamu.</div>
+    </section>
+  </main>
+
+  <main class="manage" id="viewManage" hidden></main>
+
+  <dialog id="dlgSettings">
+    <form method="dialog" class="dlg">
+      <h2>Nastavení</h2>
+      <label>GitHub token
+        <input type="password" id="setToken" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      </label>
+      <p class="hint">Fine-grained token jen pro repozitář s daty. Oprávnění <b>Contents: Read and write</b>
+        (čtení dat, správa titulů) a <b>Actions: Read and write</b> (tlačítko aktualizace).
+        Pro pouhé prohlížení stačí <b>Contents: Read-only</b>. Token se ukládá jen v tomto prohlížeči.</p>
+      <label>Repozitář s daty
+        <input type="text" id="setRepo" spellcheck="false" placeholder="jikadl/trhy-data">
+      </label>
+      <div class="dlg-actions">
+        <button type="button" id="btnShare" class="btn">Odkaz do mobilu</button>
+        <span class="spacer"></span>
+        <button value="cancel" class="btn">Zrušit</button>
+        <button value="ok" class="btn primary" id="btnSaveSettings">Uložit</button>
+      </div>
+      <p class="hint" id="shareInfo" hidden></p>
+    </form>
+  </dialog>
+</body>
+</html>
