@@ -425,30 +425,53 @@ async function vykresliGraf() {
 // ---------------------------------------------------------------- živé kurzy (TradingView)
 
 let liveKlic = "";
+const uzky = matchMedia("(max-width: 899px)");
+
 function vykresliLive() {
   const symboly = (S.conf?.tituly || []).filter(t => t.zive).map(t => ({ proName: t.zive, title: t.zivePopis || t.nazev }));
   const box = $("#live");
-  const klic = JSON.stringify(symboly) + tema();
+  const mobil = uzky.matches;
+  const sbaleno = mobil && ls.get("trhy.liveSbaleno") === "1";
+  box.classList.toggle("sbaleno", sbaleno);
+  const klic = JSON.stringify(symboly) + tema() + mobil + sbaleno;
   if (klic === liveKlic) return;
   liveKlic = klic;
   box.hidden = !symboly.length;
   const w = $("#liveWidget");
   w.innerHTML = "";
-  if (!symboly.length) return;
+  if (!symboly.length || sbaleno) return;
   const cont = document.createElement("div");
   cont.className = "tradingview-widget-container";
   cont.innerHTML = `<div class="tradingview-widget-container__widget"></div>`;
   const sc = document.createElement("script");
-  sc.src = "https://s3.tradingview.com/external-embedding/embed-widget-tickers.js";
   sc.async = true;
-  sc.textContent = JSON.stringify({
-    symbols: symboly,
-    showSymbolLogo: false,
-    isTransparent: true,
-    displayMode: "adaptive",
-    colorTheme: tema(),
-    locale: "en",
-  });
+  if (mobil) {
+    // na mobilu svislý seznam (vodorovný pás ukazuje jen první kurz)
+    sc.src = "https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js";
+    sc.textContent = JSON.stringify({
+      width: "100%",
+      height: 46 * symboly.length + 46,
+      symbolsGroups: [{
+        name: "Živě",
+        originalName: "Živě",
+        symbols: symboly.map(s => ({ name: s.proName, displayName: s.title })),
+      }],
+      showSymbolLogo: false,
+      isTransparent: true,
+      colorTheme: tema(),
+      locale: "en",
+    });
+  } else {
+    sc.src = "https://s3.tradingview.com/external-embedding/embed-widget-tickers.js";
+    sc.textContent = JSON.stringify({
+      symbols: symboly,
+      showSymbolLogo: false,
+      isTransparent: true,
+      displayMode: "adaptive",
+      colorTheme: tema(),
+      locale: "en",
+    });
+  }
   cont.appendChild(sc);
   w.appendChild(cont);
 }
@@ -580,6 +603,12 @@ window.addEventListener("hashchange", () => {
   vykresli();
 });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { liveKlic = ""; vykresli(); });
+uzky.addEventListener("change", () => vykresliLive());
+$("#liveToggle").addEventListener("click", () => {
+  if (!uzky.matches) return;
+  ls.set("trhy.liveSbaleno", $("#live").classList.contains("sbaleno") ? "0" : "1");
+  vykresliLive();
+});
 document.addEventListener("visibilitychange", () => {
   // po návratu do aplikace (mobil) obnovit, pokud jsou data starší než 30 min
   if (document.visibilityState === "visible" && S.api && S.summary?.nacteno && Date.now() - S.summary.nacteno > 30 * 60e3) obnovData();
