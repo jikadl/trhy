@@ -8,6 +8,9 @@ const TYPY = {
   stooq: "Stooq",
   cnb: "Kurz ČNB",
   patria: "Patria (sazba)",
+  ecb: "ECB Data Portal",
+  fred: "FRED (Fed St. Louis)",
+  cnbrepo: "ČNB – 2T repo sazba",
   odvozeny: "Odvozený (výpočet)",
 };
 
@@ -135,6 +138,8 @@ export class Sprava {
     if (typ === "yahoo") html += pole("ticker", "Ticker", "např. VUAA.L (prázdné = dohledat podle ISIN)") + pole("mena", "Měna (pro hledání podle ISIN)", "USD") + `<label>Burzy (pro hledání podle ISIN)<input data-f="${prefix}.burzy" value="${esc((z?.burzy || []).join(","))}" placeholder="LSE"></label>`;
     if (typ === "stooq") html += pole("ticker", "Ticker", "např. vuaa.uk");
     if (typ === "cnb") html += pole("mena", "Měna", "USD");
+    if (typ === "ecb") html += pole("serie", "Série", "FM/D.U2.EUR.4F.KR.DFR.LEV");
+    if (typ === "fred") html += `<label>ID série (víc oddělit čárkou)<input data-f="${prefix}.id" value="${esc([].concat(z?.id || []).join(","))}" placeholder="DFEDTARU"></label>`;
     if (typ === "patria") html += pole("cesta", "Cesta stránky grafu", "/kurzy/czk/5y/irs/graf.html");
     if (typ === "odvozeny") {
       const ops = ["*", "/", "+", "-"];
@@ -188,7 +193,7 @@ export class Sprava {
     if (el.dataset.n) {
       // formulář nového titulu
       let v = el.value;
-      if (el.dataset.n.endsWith(".burzy")) v = v.split(",").map(s => s.trim()).filter(Boolean);
+      if (el.dataset.n.endsWith(".burzy") || el.dataset.n === "zdroj.id") v = v.split(",").map(s => s.trim()).filter(Boolean);
       nastav(this.novy, el.dataset.n, v);
       if (zmena && (el.dataset.n === "zdroj.typ" || el.dataset.n === "isin")) this.render();
       return;
@@ -203,7 +208,7 @@ export class Sprava {
       const t = d.tituly.find(x => x.id === el.closest("[data-t]").dataset.t);
       let v = el.value;
       if (el.dataset.f === "des") v = v === "" ? "" : Number(v);
-      if (el.dataset.f.endsWith(".burzy")) v = v.split(",").map(s => s.trim()).filter(Boolean);
+      if (el.dataset.f.endsWith(".burzy") || el.dataset.f === "zdroj.id") v = v.split(",").map(s => s.trim()).filter(Boolean);
       if (el.dataset.f === "zaloha.ticker") {
         if (v) t.zaloha = { typ: "stooq", ticker: v }; else delete t.zaloha;
       } else nastav(t, el.dataset.f, v);
@@ -262,6 +267,8 @@ export class Sprava {
         z.typ === "yahoo" && !z.ticker && !n.isin ? "ticker nebo ISIN" :
         z.typ === "stooq" && !z.ticker ? "ticker" :
         z.typ === "cnb" && !z.mena ? "měnu" :
+        z.typ === "ecb" && !z.serie ? "sérii" :
+        z.typ === "fred" && !(z.id?.length) ? "ID série" :
         z.typ === "patria" && !z.cesta ? "cestu stránky" :
         z.typ === "odvozeny" && (!z.a || !z.b) ? "tituly A a B" : null;
       if (chybi) { alert(`Doplňte ${chybi}.`); return; }

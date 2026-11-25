@@ -145,16 +145,21 @@ button, input, select { font: inherit; color: inherit; }
 /* ---------- seznam */
 .group h3 {
   margin: 0;
-  padding: 12px 16px 6px;
-  font-size: 11px;
+  padding: 10px 16px 7px;
+  font-size: 13px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: var(--muted);
+  color: var(--text);
+  border-top: 2px solid var(--border);
+  border-bottom: 1px solid var(--grid);
   position: sticky;
   top: 0;
   background: var(--surface);
   z-index: 1;
 }
+.group { margin-top: 6px; }
+.group:first-of-type { margin-top: 0; }
 .list-tools {
   display: flex;
   align-items: center;

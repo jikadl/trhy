@@ -192,6 +192,7 @@ export class Graf {
       series: [{
         id: "h",
         type: "line",
+        step: titul.graf === "schody" ? "end" : false,
         data: this.hodn,
         showSymbol: false,
         sampling: "lttb",
